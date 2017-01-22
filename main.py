@@ -1,6 +1,7 @@
 import math
 import pygame, sys, time
 from pygame.locals import *
+import TextInput
 
 pygame.init()
 pygame.font.init()
@@ -9,6 +10,7 @@ fontSize = 18
 LEFT = 1
 MIDDLE = 2
 RIGHT = 3
+canWrite = False
 
 myfont = pygame.font.SysFont("Arial", fontSize)
 WINDOW_WIDTH = 1000
@@ -21,17 +23,19 @@ class Circle():
     coordonates = []
     def Display(self, text):
         self.coordonates = pygame.mouse.get_pos()
-        #Use pygame.Color to make a color.
-        #The last parameter is linewidth, and can be set to 0 for filled circles.
+
         pygame.draw.circle(surface, pygame.Color(0,0,255), self.coordonates, 20, 2)
-        #The blit was deleted because it did nothing and the broke code.
+
         textsurface = myfont.render(text, False, (0, 0, 0))
         surface.blit(textsurface, (self.coordonates[0] - (fontSize - 10), self.coordonates[1] - (fontSize - 5)))
+
     def drawLine(self, circleDestIndex):
-        myCoordonatesAdjust = (self.coordonates[0], self.coordonates[1])
-        destCoordonatesAdjust = (circlesArray[circleDestIndex].coordonates[0], circlesArray[circleDestIndex].coordonates[1])
-        pygame.draw.lines(surface, pygame.Color(0, 0, 255), False, [myCoordonatesAdjust, destCoordonatesAdjust], 2)
-        pygame.draw.lines(surface, pygame.Color(0, 0, 255), False, [myCoordonatesAdjust, destCoordonatesAdjust], 2)
+        pygame.draw.lines(surface, pygame.Color(0, 0, 255), False, [self.coordonates, circlesArray[circleDestIndex].coordonates], 2)
+        return True
+    def drawSelfLine(self):
+        pygame.draw.arc(surface, pygame.Color(0, 0, 255), (self.coordonates[0] - 10, self.coordonates[1] - 40, 20, 50), 0, 3.14, 2)
+        return True
+
 
 def displayMouseCoords():
     textsurface = myfont.render("mouse at (%d, %d)" % event.pos, False, (0, 0, 0))
@@ -50,42 +54,41 @@ def getClickedCircleIndex(coords):
 circlesArray = []
 firstMouseCoords = None
 clickedCirclesIndexes = []
+textinput = TextInput.TextInput()
 while True:
-    for event in pygame.event.get():
-        #Add a quit event so you can close your game normally.
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == LEFT:
-            var = Circle()
-            circlesArray.append(var)
-            index = circlesArray.index(var)
-            text = 'q' + str(index)
-            circlesArray[index].Display(text)
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == RIGHT:
-            if (firstMouseCoords is None):
-                firstMouseCoords = pygame.mouse.get_pos()
-                index = getClickedCircleIndex(firstMouseCoords)
-                print('first click: ')
-                print(firstMouseCoords)
-            else:
-                secondMouseCoords = pygame.mouse.get_pos()
-                firstMouseCoords = None
-                index = getClickedCircleIndex(secondMouseCoords)
-                print('second click: ')
-                print(secondMouseCoords)
+    if canWrite:
+        pygame.draw.rect(surface, (255, 255, 255), [10, 10, 130, 30], 120)
+        textinput.update(pygame.event.get())
+        surface.blit(textinput.get_surface(), (10, 10))
+    else:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == LEFT:
+                var = Circle()
+                circlesArray.append(var)
+                index = circlesArray.index(var)
+                text = 'q' + str(index)
+                circlesArray[index].Display(text)
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == RIGHT:
+                mouseClickCoords = pygame.mouse.get_pos()
+                index = getClickedCircleIndex(mouseClickCoords)
 
-            if not(index is None):
-                clickedCirclesIndexes.append(index)
+                if not(index is None):
+                    clickedCirclesIndexes.append(index)
 
-            if (clickedCirclesIndexes.__len__() >= 2):
-                circlesArray[clickedCirclesIndexes[0]].drawLine(clickedCirclesIndexes[1])
-                clickedCirclesIndexes = []
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == MIDDLE:
-            surface.fill((255, 255, 255))
-            circlesArray = []
-        if event.type == pygame.MOUSEMOTION:
-            displayMouseCoords()
+                if (clickedCirclesIndexes.__len__() >= 2):
+                    if (clickedCirclesIndexes[0] == clickedCirclesIndexes[1]):
+                        canWrite = circlesArray[clickedCirclesIndexes[0]].drawSelfLine()
+                    else:
+                        canWrite = circlesArray[clickedCirclesIndexes[0]].drawLine(clickedCirclesIndexes[1])
+                    clickedCirclesIndexes = []
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == MIDDLE:
+                surface.fill((255, 255, 255))
+                circlesArray = []
+            if event.type == pygame.MOUSEMOTION:
+                displayMouseCoords()
 
     #Update once at the end of each gameloop.
     pygame.display.update()
