@@ -48,6 +48,7 @@ class Circle():
         textsurface = myfont.render(text, False, (0, 0, 0))
         surface.blit(textsurface, (self.coordonates[0] - (fontSize - 10), self.coordonates[1] - (fontSize - 5)))
 
+    # TODO: needs a lot of refactoring
     def drawLine(self, circleDestIndex):
         if self.coordonates[0] < circlesArray[circleDestIndex].coordonates[0]:
 
