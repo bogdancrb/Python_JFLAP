@@ -10,7 +10,7 @@ class TextInput:
     that can be moved using the arrow-keys. Delete, home and end work as well.
     """
     def __init__(self, font_family = "",
-                        font_size = 35,
+                        font_size = 20,
                         antialias=True,
                         text_color=(0, 0, 0),
                         cursor_color=(0, 0, 1),
@@ -52,6 +52,8 @@ class TextInput:
 
         self.clock = pygame.time.Clock()
 
+        self.count = 0
+
     def update(self, events):
         for event in events:
             if event.type == pygame.KEYDOWN:
@@ -67,12 +69,16 @@ class TextInput:
 
                     # Subtract one from cursor_pos, but do not go below zero:
                     self.cursor_position = max(self.cursor_position - 1, 0)
+                    self.count -= 1
                 elif event.key == pl.K_DELETE:
                     self.input_string = self.input_string[:self.cursor_position] + \
                                         self.input_string[self.cursor_position + 1:]
 
-                elif event.key == pl.K_RETURN:
-                    return True
+                elif event.key == K_RETURN:
+                    return False
+
+                elif event.key == K_ESCAPE:
+                    return False
 
                 elif event.key == pl.K_RIGHT:
                     # Add one to cursor_pos, but do not exceed len(input_string)
@@ -88,12 +94,18 @@ class TextInput:
                 elif event.key == pl.K_HOME:
                     self.cursor_position = 0
 
+                elif event.key == pl.K_KP_ENTER:
+                    return False
+
                 else:
-                    # If no special key is pressed, add unicode of key to input_string
-                    self.input_string = self.input_string[:self.cursor_position] + \
-                                        event.unicode + \
-                                        self.input_string[self.cursor_position:]
-                    self.cursor_position += len(event.unicode) # Some are empty, e.g. K_UP
+                    if (self.count < 17):
+                        # If no special key is pressed, add unicode of key to input_string
+                        self.input_string = self.input_string[:self.cursor_position] + \
+                                            event.unicode + \
+                                            self.input_string[self.cursor_position:]
+                        self.cursor_position += len(event.unicode) # Some are empty, e.g. K_UP
+
+                        self.count += 1
 
             elif event.type == pl.KEYUP:
                 # *** Because KEYUP doesn't include event.unicode, this dict is stored in such a weird way
@@ -128,7 +140,7 @@ class TextInput:
             self.surface.blit(self.cursor_surface, (cursor_y_pos, 0))
 
         self.clock.tick()
-        return False
+        return True
 
     def get_surface(self):
         return self.surface

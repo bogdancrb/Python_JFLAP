@@ -2,15 +2,29 @@ import math
 import pygame, sys, time
 from pygame.locals import *
 import TextInput
+import Buttons
 
 pygame.init()
 pygame.font.init()
 
-fontSize = 18
 LEFT = 1
 MIDDLE = 2
 RIGHT = 3
+fontSize = 18
+firstMouseCoords = None
+nrOfButtons = 2
+
 canWrite = False
+displayButtons = True
+
+circlesArray = []
+clickedCirclesIndexes = []
+buttonsArray = []
+buttonsTexts = [
+    'Seteaza initial',
+    ' Seteaza final '
+]
+
 
 myfont = pygame.font.SysFont("Arial", fontSize)
 WINDOW_WIDTH = 1000
@@ -18,6 +32,7 @@ WINDOW_HEIGHT = 600
 surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT),0,32)
 pygame.display.set_caption('JFLAP in Python')
 surface.fill((255,255,255))
+surface.fill((239,239,239), [170, 20, 800, 450])
 
 class Circle():
     coordonates = []
@@ -36,10 +51,9 @@ class Circle():
         pygame.draw.arc(surface, pygame.Color(0, 0, 255), (self.coordonates[0] - 10, self.coordonates[1] - 40, 20, 50), 0, 3.14, 2)
         return True
 
-
 def displayMouseCoords():
     textsurface = myfont.render("mouse at (%d, %d)" % event.pos, False, (0, 0, 0))
-    pygame.draw.rect(surface, (255,255,255), [20, 20, 130, 30], 120)
+    surface.fill((255, 255, 255), [20, 20, 130, 30])
     surface.blit(textsurface, [20, 20])
 
 def getClickedCircleIndex(coords):
@@ -51,29 +65,72 @@ def getClickedCircleIndex(coords):
         if (rad < 20):
             return index
 
-circlesArray = []
-firstMouseCoords = None
-clickedCirclesIndexes = []
-textinput = TextInput.TextInput()
+def getClickedButtonIndex(coords):
+    for index in range(0, buttonsArray.__len__()):
+        if (buttonsArray[index].pressed(coords)):
+            return index
+
+    return -1
+
 while True:
+    if displayButtons:
+        buttonsArray = []
+
+        for i in range(0, nrOfButtons):
+            buttonsArray.append(Buttons.Button())
+
+            buttonsArray[i].create_button(surface, (255, 255, 255), 65 * (i * 4 + 1), 490, 240, 40, 80, buttonsTexts[i], (0, 0, 0))
+            displayButtons = False
+
     if canWrite:
-        pygame.draw.rect(surface, (255, 255, 255), [10, 10, 130, 30], 120)
-        textinput.update(pygame.event.get())
-        surface.blit(textinput.get_surface(), (10, 10))
+        # Circle 1
+        x1 = circlesArray[clickedCirclesIndexes[0]].coordonates[0]
+        y1 = circlesArray[clickedCirclesIndexes[0]].coordonates[1]
+
+        # Circle 2
+        x2 = circlesArray[clickedCirclesIndexes[1]].coordonates[0]
+        y2 = circlesArray[clickedCirclesIndexes[1]].coordonates[1]
+
+        # Fill input field
+        if x1 == x2 and y1 == y2:
+            x = (x1 + x2) / 2 - 40
+            y = (y1 + y2) / 2 - 60
+        else:
+            x = (x1 + x2) / 2 - 40
+            y = (y1 + y2) / 2 - 20
+
+        surface.fill((239,239,239), [x, y, 130, 20])
+
+        # Run the textinput
+        canWrite = textinput.update(pygame.event.get())
+
+        # Attach to screen
+        surface.blit(textinput.get_surface(), (x, y))
     else:
+        textinput = TextInput.TextInput()
+
         for event in pygame.event.get():
+            mouseClickCoords = pygame.mouse.get_pos()
+
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == LEFT:
-                var = Circle()
-                circlesArray.append(var)
-                index = circlesArray.index(var)
-                text = 'q' + str(index)
-                circlesArray[index].Display(text)
+                buttonIndex = getClickedButtonIndex(mouseClickCoords)
+
+                if buttonIndex == -1 \
+                        and (mouseClickCoords[0] >= 180 and mouseClickCoords[0] <= 950) \
+                        and (mouseClickCoords[1] >= 80 and mouseClickCoords[1] <= 420):
+                    var = Circle()
+                    circlesArray.append(var)
+                    index = circlesArray.index(var)
+                    text = 'q' + str(index)
+                    circlesArray[index].Display(text)
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == RIGHT:
-                mouseClickCoords = pygame.mouse.get_pos()
                 index = getClickedCircleIndex(mouseClickCoords)
+
+                if (clickedCirclesIndexes.__len__() >= 2):
+                    clickedCirclesIndexes = []
 
                 if not(index is None):
                     clickedCirclesIndexes.append(index)
@@ -83,10 +140,11 @@ while True:
                         canWrite = circlesArray[clickedCirclesIndexes[0]].drawSelfLine()
                     else:
                         canWrite = circlesArray[clickedCirclesIndexes[0]].drawLine(clickedCirclesIndexes[1])
-                    clickedCirclesIndexes = []
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == MIDDLE:
                 surface.fill((255, 255, 255))
+                surface.fill((239, 239, 239), [170, 20, 800, 450])
                 circlesArray = []
+                displayButtons = True
             if event.type == pygame.MOUSEMOTION:
                 displayMouseCoords()
 
