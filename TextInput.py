@@ -10,7 +10,7 @@ class TextInput:
     that can be moved using the arrow-keys. Delete, home and end work as well.
     """
     def __init__(self, font_family = "",
-                        font_size = 20,
+                        font_size = 18,
                         antialias=True,
                         text_color=(0, 0, 0),
                         cursor_color=(0, 0, 1),
@@ -98,7 +98,7 @@ class TextInput:
                     return False
 
                 else:
-                    if (self.count < 17):
+                    if (self.count < 5):
                         # If no special key is pressed, add unicode of key to input_string
                         self.input_string = self.input_string[:self.cursor_position] + \
                                             event.unicode + \

@@ -50,6 +50,11 @@ class Circle():
     def drawSelfLine(self):
         pygame.draw.arc(surface, pygame.Color(0, 0, 255), (self.coordonates[0] - 10, self.coordonates[1] - 40, 20, 50), 0, 3.14, 2)
         return True
+    def setInitial(self):
+        # pygame.draw.lines(surface, pygame.Color(0, 0, 255), False, [(100,150), (250,100), (80,180)], 2)
+        pygame.draw.polygon(surface, pygame.Color(0, 0, 255), [[self.coordonates[0] - 50, self.coordonates[1] - 30], [self.coordonates[0] - 50, self.coordonates[1] + 25], [self.coordonates[0] - 20, self.coordonates[1]]], 3)
+    def setFinal(self):
+        pygame.draw.circle(surface, pygame.Color(0, 0, 255), self.coordonates, 30, 2)
 
 def displayMouseCoords():
     textsurface = myfont.render("mouse at (%d, %d)" % event.pos, False, (0, 0, 0))
@@ -72,6 +77,24 @@ def getClickedButtonIndex(coords):
 
     return -1
 
+def executeButtonCommand(index):
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == LEFT:
+                mouseClickCoords = pygame.mouse.get_pos()
+
+                indexCircle = getClickedCircleIndex(mouseClickCoords)
+
+                if indexCircle is None:
+                    return
+
+                if index == 0:
+                    circlesArray[indexCircle].setInitial()
+                else:
+                    circlesArray[indexCircle].setFinal()
+
+                return
+
 while True:
     if displayButtons:
         buttonsArray = []
@@ -93,13 +116,13 @@ while True:
 
         # Fill input field
         if x1 == x2 and y1 == y2:
-            x = (x1 + x2) / 2 - 40
+            x = (x1 + x2) / 2 - 15
             y = (y1 + y2) / 2 - 60
         else:
             x = (x1 + x2) / 2 - 40
             y = (y1 + y2) / 2 - 20
 
-        surface.fill((239,239,239), [x, y, 130, 20])
+        surface.fill((239,239,239), [x, y, 45, 20])
 
         # Run the textinput
         canWrite = textinput.update(pygame.event.get())
@@ -126,6 +149,9 @@ while True:
                     index = circlesArray.index(var)
                     text = 'q' + str(index)
                     circlesArray[index].Display(text)
+                else:
+                    executeButtonCommand(buttonIndex)
+
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == RIGHT:
                 index = getClickedCircleIndex(mouseClickCoords)
 
