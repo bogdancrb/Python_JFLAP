@@ -12,7 +12,7 @@ MIDDLE = 2
 RIGHT = 3
 fontSize = 18
 firstMouseCoords = None
-nrOfButtons = 2
+nrOfButtons = 3
 
 canWrite = False
 displayButtons = True
@@ -22,7 +22,8 @@ clickedCirclesIndexes = []
 buttonsArray = []
 buttonsTexts = [
     'Seteaza initial',
-    ' Seteaza final '
+    ' Seteaza final ',
+    'Genereaza limbaj'
 ]
 
 
@@ -36,23 +37,61 @@ surface.fill((239,239,239), [170, 20, 800, 450])
 
 class Circle():
     coordonates = []
-    def Display(self, text):
+    def Display(self, text, isTrap):
         self.coordonates = pygame.mouse.get_pos()
 
-        pygame.draw.circle(surface, pygame.Color(0,0,255), self.coordonates, 20, 2)
+        if isTrap:
+            pygame.draw.circle(surface, pygame.Color(0, 0, 255), self.coordonates, 20, 5)
+        else:
+            pygame.draw.circle(surface, pygame.Color(0,0,255), self.coordonates, 20, 2)
 
         textsurface = myfont.render(text, False, (0, 0, 0))
         surface.blit(textsurface, (self.coordonates[0] - (fontSize - 10), self.coordonates[1] - (fontSize - 5)))
 
     def drawLine(self, circleDestIndex):
-        pygame.draw.lines(surface, pygame.Color(0, 0, 255), False, [self.coordonates, circlesArray[circleDestIndex].coordonates], 2)
+        if self.coordonates[0] < circlesArray[circleDestIndex].coordonates[0]:
+
+            if self.coordonates[1] < circlesArray[circleDestIndex].coordonates[1]:
+                adjust = 20
+            else:
+                adjust = -20
+
+            pygame.draw.lines(surface, pygame.Color(0, 0, 255), False,
+                              [
+                                  (self.coordonates[0] + 20, self.coordonates[1]),
+                                  (circlesArray[circleDestIndex].coordonates[0] - 20,
+                                   circlesArray[circleDestIndex].coordonates[1])
+                              ], 2)
+            pygame.draw.circle(surface, pygame.Color(0, 0, 0),
+                               (circlesArray[circleDestIndex].coordonates[0] + adjust,
+                                circlesArray[circleDestIndex].coordonates[1]), 3, 2)
+        else:
+            if self.coordonates[1] < circlesArray[circleDestIndex].coordonates[1]:
+                adjust = 20
+            else:
+                adjust = -20
+
+            pygame.draw.lines(surface, pygame.Color(0, 0, 255), False,
+                              [
+                                  (self.coordonates[0] - 20, self.coordonates[1]),
+                                  (circlesArray[circleDestIndex].coordonates[0] + 20,
+                                   circlesArray[circleDestIndex].coordonates[1])
+                              ], 2)
+            pygame.draw.circle(surface, pygame.Color(0, 0, 0),
+                               (circlesArray[circleDestIndex].coordonates[0] + adjust,
+                                circlesArray[circleDestIndex].coordonates[1]), 3, 2)
         return True
     def drawSelfLine(self):
         pygame.draw.arc(surface, pygame.Color(0, 0, 255), (self.coordonates[0] - 10, self.coordonates[1] - 40, 20, 50), 0, 3.14, 2)
         return True
     def setInitial(self):
-        # pygame.draw.lines(surface, pygame.Color(0, 0, 255), False, [(100,150), (250,100), (80,180)], 2)
-        pygame.draw.polygon(surface, pygame.Color(0, 0, 255), [[self.coordonates[0] - 50, self.coordonates[1] - 30], [self.coordonates[0] - 50, self.coordonates[1] + 25], [self.coordonates[0] - 20, self.coordonates[1]]], 3)
+        pygame.draw.polygon(surface,
+                            pygame.Color(0, 0, 255),
+                            [
+                                [self.coordonates[0] - 50, self.coordonates[1] - 30],
+                                [self.coordonates[0] - 50, self.coordonates[1] + 25],
+                                [self.coordonates[0] - 20, self.coordonates[1]]
+                            ], 3)
     def setFinal(self):
         pygame.draw.circle(surface, pygame.Color(0, 0, 255), self.coordonates, 30, 2)
 
@@ -95,6 +134,7 @@ def executeButtonCommand(index):
 
                 return
 
+# START
 while True:
     if displayButtons:
         buttonsArray = []
@@ -148,9 +188,17 @@ while True:
                     circlesArray.append(var)
                     index = circlesArray.index(var)
                     text = 'q' + str(index)
-                    circlesArray[index].Display(text)
+                    circlesArray[index].Display(text, False)
                 else:
                     executeButtonCommand(buttonIndex)
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    var = Circle()
+                    circlesArray.append(var)
+                    index = circlesArray.index(var)
+                    circlesArray[index].Display('Tr', True)
+
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == RIGHT:
                 index = getClickedCircleIndex(mouseClickCoords)
